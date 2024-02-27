@@ -38,7 +38,7 @@ class AnniversaryItem extends StatelessWidget {
                       '  ' +
                       getAgeAndSchoolGrade(anniversary.date) +
                       ' ',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                     color: tdBlack,
                   ),
@@ -48,16 +48,16 @@ class AnniversaryItem extends StatelessWidget {
                       '  ' +
                       getAnniversaryYearsCount(anniversary.date) +
                       ' ',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
                     color: tdBlack,
                   ),
                 ),
         ),
-        SizedBox(
+        const SizedBox(
           width: 20,
         ),
-        Text(anniversary.restDays().toString() + '日後'),
+        Text('${anniversary.restDays()}日後'),
       ],
     );
   }
