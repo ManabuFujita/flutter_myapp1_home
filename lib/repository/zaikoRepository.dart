@@ -3,18 +3,18 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_myapp1_home/main.dart';
 import 'package:flutter_myapp1_home/model/Anniversary.dart';
+import 'package:flutter_myapp1_home/model/zaiko.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class AnniversaryRepository {
-  final anniversariesManager =
-      FirebaseFirestore.instance.collection('anniversaries');
+class ZaikoRepository {
+  final zaikosManager = FirebaseFirestore.instance.collection('zaikos');
 
   ///
   /// データを取得する
   ///
-  Future<List<QueryDocumentSnapshot<Anniversary>>> getAnniversaries() async {
-    final dataRef = anniversariesManager.withConverter<Anniversary>(
-        fromFirestore: (snapshot, _) => Anniversary.fromJson(snapshot.data()!),
+  Future<List<QueryDocumentSnapshot<Zaiko>>> getAnniversaries() async {
+    final dataRef = zaikosManager.withConverter<Zaiko>(
+        fromFirestore: (snapshot, _) => Zaiko.fromJson(snapshot.data()!),
         toFirestore: (school, _) => school.toJson());
     final dataSnapshot = await dataRef.get();
     return dataSnapshot.docs;
@@ -35,8 +35,8 @@ class AnniversaryRepository {
   ///
   /// データを保存する
   ///
-  Future<String> insert(Anniversary anniversary) async {
-    final data = await anniversariesManager.add(anniversary.toJson());
+  Future<String> insert(Zaiko zaiko) async {
+    final data = await zaikosManager.add(zaiko.toJson());
     return data.id;
   }
 
@@ -50,16 +50,16 @@ class AnniversaryRepository {
   ///
   /// データを削除する
   ///
-  Future<void> delete(Anniversary anniversary) async {
-    await anniversariesManager
-        .where('userId', isEqualTo: anniversary.userId)
-        .where('id', isEqualTo: anniversary.id)
+  Future<void> delete(Zaiko zaiko) async {
+    await zaikosManager
+        .where('userId', isEqualTo: zaiko.userId)
+        .where('productId', isEqualTo: zaiko.productId)
         .get()
         .then(
           // 取得したdocIDを使ってドキュメント削除
           (QuerySnapshot snapshot) => {
             snapshot.docs.forEach((f) {
-              anniversariesManager.doc(f.reference.id).delete();
+              zaikosManager.doc(f.reference.id).delete();
             }),
           },
         );

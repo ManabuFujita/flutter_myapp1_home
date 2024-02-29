@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_myapp1_home/screens/todoPage.dart';
 
@@ -17,6 +18,8 @@ class _HomeState extends State<Home> {
   List<ToDo> _foundToDo = [];
   final _todoController = TextEditingController();
 
+  final user = FirebaseAuth.instance.currentUser;
+
   @override
   void initState() {
     _foundToDo = todosList;
@@ -31,7 +34,9 @@ class _HomeState extends State<Home> {
           preferredSize: const Size.fromHeight(kToolbarHeight),
           child: BuildAppBar(),
         ),
-        body: Text('home'),
+        body: user == null
+            ? Text('home: no user')
+            : Text('home: ' + user!.email!),
         drawer: BuildDrawer());
   }
 
@@ -147,6 +152,18 @@ class BuildDrawer extends StatelessWidget {
             title: const Text('Aniversary Page'),
             onTap: () {
               Navigator.pushNamed(context, '/aniversary', arguments: null);
+            },
+          ),
+          ListTile(
+            title: const Text('Zaiko Page'),
+            onTap: () {
+              Navigator.pushNamed(context, '/zaiko', arguments: null);
+            },
+          ),
+          ListTile(
+            title: const Text('Test Page'),
+            onTap: () {
+              Navigator.pushNamed(context, '/test', arguments: null);
             },
           ),
         ],

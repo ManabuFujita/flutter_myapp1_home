@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_myapp1_home/screens/anniversaryPage.dart';
 import 'package:flutter_myapp1_home/screens/home.dart';
+import 'package:flutter_myapp1_home/screens/testPage.dart';
 import 'package:flutter_myapp1_home/screens/todoPage.dart';
+import 'package:flutter_myapp1_home/screens/zaikoPage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'firebase_options.dart';
@@ -40,13 +42,16 @@ class MyApp extends ConsumerWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'ToDo App',
-      home: user == null ? const Auth() : Home(),
+      home: user == null ? Auth() : Home(),
       routes: <String, WidgetBuilder>{
+        '/auth': (BuildContext context) => Auth(),
         '/home': (BuildContext context) => Home(),
         '/todo': (BuildContext context) => TodoPage(),
         '/aniversary': (BuildContext context) => AnniversaryPage(),
+        '/zaiko': (BuildContext context) => ZaikoPage(),
+        '/test': (BuildContext context) => TestPage(),
       },
-      initialRoute: '/home',
+      // initialRoute: '/auth',
     );
   }
 }

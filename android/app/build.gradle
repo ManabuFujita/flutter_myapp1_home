@@ -25,6 +25,7 @@ if (flutterVersionName == null) {
 android {
     namespace "com.example.flutter_myapp1_home"
     compileSdkVersion flutter.compileSdkVersion
+    // compileSdkVersion 33 // 変更
     ndkVersion flutter.ndkVersion
 
     compileOptions {
@@ -45,7 +46,9 @@ android {
         applicationId "com.example.flutter_myapp1_home"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
-        minSdkVersion flutter.minSdkVersion
+        // minSdkVersion flutter.minSdkVersion
+        // minSdkVersion 33 // 変更
+        minSdkVersion 21 // 変更
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
@@ -58,6 +61,11 @@ android {
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig signingConfigs.debug
         }
+
+        compileOptions {
+            sourceCompatibility JavaVersion.VERSION_1_8
+            targetCompatibility JavaVersion.VERSION_1_8
+        }
     }
 }
 
@@ -65,4 +73,14 @@ flutter {
     source '../..'
 }
 
-dependencies {}
+dependencies {
+    // CameraX core library using the camera2 implementation
+    def camerax_version = "1.1.0-beta01"
+    implementation "androidx.camera:camera-core:${camerax_version}"
+    implementation "androidx.camera:camera-camera2:${camerax_version}"
+    implementation "androidx.camera:camera-lifecycle:${camerax_version}"
+    implementation "androidx.camera:camera-video:${camerax_version}"
+
+    implementation "androidx.camera:camera-view:${camerax_version}"
+    implementation "androidx.camera:camera-extensions:${camerax_version}"
+}

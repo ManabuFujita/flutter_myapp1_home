@@ -25,6 +25,7 @@ class _AuthState extends State<Auth> {
               // 1行目 メールアドレス入力用テキストフィールド
               TextFormField(
                 decoration: const InputDecoration(labelText: 'メールアドレス'),
+                keyboardType: TextInputType.emailAddress,
                 onChanged: (String value) {
                   setState(() {
                     _email = value;
@@ -67,8 +68,10 @@ class _AuthState extends State<Auth> {
                             .signInWithEmailAndPassword(
                                 email: _email, password: _password))
                         .user;
-                    if (user != null)
+                    if (user != null) {
                       print("ログインしました　${user.email} , ${user.uid}");
+                      Navigator.pushNamed(context, '/home', arguments: null);
+                    }
                   } catch (e) {
                     print(e);
                   }
