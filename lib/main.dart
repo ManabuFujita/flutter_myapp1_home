@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_myapp1_home/screens/anniversaryPage.dart';
 import 'package:flutter_myapp1_home/screens/home.dart';
 import 'package:flutter_myapp1_home/screens/testPage.dart';
@@ -29,6 +30,13 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  // .envファイルの読み込み
+  // const envFile = String.fromEnvironment('env');
+  // await dotenv.load(fileName: envFile);
+
+  // テスト用envファイルの読み込み
+  await dotenv.load(fileName: '.env.development');
+
   runApp(ProviderScope(child: MyApp()));
 }
 
@@ -49,7 +57,7 @@ class MyApp extends ConsumerWidget {
         '/todo': (BuildContext context) => TodoPage(),
         '/aniversary': (BuildContext context) => AnniversaryPage(),
         '/zaiko': (BuildContext context) => ZaikoPage(),
-        '/test': (BuildContext context) => TestPage(),
+        // '/test': (BuildContext context) => TestPage(),
       },
       // initialRoute: '/auth',
     );

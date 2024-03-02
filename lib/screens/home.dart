@@ -160,12 +160,12 @@ class BuildDrawer extends StatelessWidget {
               Navigator.pushNamed(context, '/zaiko', arguments: null);
             },
           ),
-          ListTile(
-            title: const Text('Test Page'),
-            onTap: () {
-              Navigator.pushNamed(context, '/test', arguments: null);
-            },
-          ),
+          // ListTile(
+          //   title: const Text('Test Page'),
+          //   onTap: () {
+          //     Navigator.pushNamed(context, '/test', arguments: null);
+          //   },
+          // ),
         ],
       ),
     );

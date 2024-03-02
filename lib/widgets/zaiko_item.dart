@@ -8,14 +8,20 @@ import '../constants/colors.dart';
 
 class ZaikoItem extends StatelessWidget {
   final Zaiko zaiko;
-  final onAnniversaryChanged;
+  final restNumber;
+  final limitDate;
   final onDeleteItem;
+  final onUsedItem;
+  final onSelectItem;
 
   const ZaikoItem({
     Key? key,
     required this.zaiko,
-    required this.onAnniversaryChanged,
+    required this.restNumber,
+    required this.limitDate,
     required this.onDeleteItem,
+    required this.onUsedItem,
+    required this.onSelectItem,
   }) : super(key: key);
 
   title() {
@@ -34,9 +40,9 @@ class ZaikoItem extends StatelessWidget {
       children: [
         Container(
             child: Text(
-          '残り${zaiko.restNumber().toString()}個' +
+          '残り${restNumber.toString()}${zaiko.unitName}' +
               ' / ' +
-              '${getLimitDateString()}：',
+              '${getLimitDateString()}',
           style: const TextStyle(
             fontSize: 16,
             color: tdBlack,
@@ -52,7 +58,7 @@ class ZaikoItem extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 20),
       child: ListTile(
         onTap: () {
-          onAnniversaryChanged(zaiko);
+          onSelectItem(zaiko);
         },
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
@@ -65,25 +71,39 @@ class ZaikoItem extends StatelessWidget {
         ),
         title: title(),
         subtitle: subTitle(),
-        trailing: Container(
-          padding: const EdgeInsets.all(0),
-          margin: const EdgeInsets.symmetric(vertical: 12),
-          height: 35,
-          width: 35,
-          decoration: BoxDecoration(
-            color: tdRed,
-            borderRadius: BorderRadius.circular(5),
-          ),
+        trailing: Wrap(
+          spacing: 12,
+          // padding: const EdgeInsets.all(0),
+          // margin: const EdgeInsets.symmetric(vertical: 12),
+          // height: 35,
+          // width: 35,
+          // decoration: BoxDecoration(
+          //   color: tdRed,
+          //   borderRadius: BorderRadius.circular(5),
+          // ),
           // 削除ボタン
-          child: IconButton(
-            color: Colors.white,
-            iconSize: 18,
-            icon: const Icon(Icons.delete),
-            onPressed: () {
-              // print('Clicked on delete icon');
-              onDeleteItem(zaiko);
-            },
-          ),
+          children: [
+            IconButton(
+              color: Colors.blue,
+              // iconSize: 18,
+              icon: const Icon(Icons.task_alt_outlined),
+              onPressed: () {
+                // print('Clicked on delete icon');
+                onUsedItem(
+                  zaiko,
+                );
+              },
+            ),
+            IconButton(
+              color: Colors.red,
+              iconSize: 18,
+              icon: const Icon(Icons.delete),
+              onPressed: () {
+                // print('Clicked on delete icon');
+                onDeleteItem(zaiko);
+              },
+            ),
+          ],
         ),
       ),
     );
@@ -128,8 +148,9 @@ class ZaikoItem extends StatelessWidget {
   }
 
   String getLimitDateString() {
+    DateFormat dateFormat = DateFormat('yyyy/MM/dd');
     return zaiko.isStrictLimit
-        ? '消費期限${zaiko.nearestLimitDate().toString()}'
-        : '賞味期限${zaiko.nearestLimitDate().toString()}';
+        ? '消費期限:${dateFormat.format(limitDate)}'
+        : '賞味期限:${dateFormat.format(limitDate)}';
   }
 }

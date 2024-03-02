@@ -6,9 +6,10 @@ class Zaiko {
   String productId;
 
   String name;
-  String? code;
+  String code;
   DateTime lastBuyDate;
   bool isStrictLimit;
+  String unitName;
 
   List<History> histories;
 
@@ -20,9 +21,10 @@ class Zaiko {
     required this.userId,
     required this.productId,
     required this.name,
-    this.code,
+    required this.code,
     required this.lastBuyDate,
     required this.isStrictLimit,
+    required this.unitName,
     required this.histories,
     required this.createdAt,
     required this.updatedAt,
@@ -57,6 +59,7 @@ class Zaiko {
             histories: (json['histories']! as List)
                 .map((e) => History.fromJson(e as Map<String, Object?>))
                 .toList(),
+            unitName: json['unitName']! as String,
             createdAt: (json['createdAt']! as Timestamp).toDate() as DateTime,
             updatedAt: (json['updatedAt']! as Timestamp).toDate() as DateTime,
             deletedAt:
@@ -76,6 +79,7 @@ class Zaiko {
       'lastBuyDate': Timestamp.fromDate(lastBuyDate),
       'isStrictLimit': isStrictLimit,
       'histories': histories.map((e) => e.toJson()).toList(),
+      'unitName': unitName,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
       'deletedAt': deletedTimestamp,
@@ -121,7 +125,7 @@ class Zaiko {
 
   // histriesから、isUsed==falseで最古のlimitdateを返す
   DateTime nearestLimitDate() {
-    DateTime oldestDate = DateTime.now();
+    DateTime oldestDate = DateTime.now().add(Duration(days: 365 * 50));
     for (var i = 0; i < histories.length; i++) {
       if (!histories[i].isUsed) {
         if (oldestDate.isAfter(histories[i].limitDate)) {
@@ -130,6 +134,22 @@ class Zaiko {
       }
     }
     return oldestDate;
+  }
+
+  // historiesから、limitDateと個数のmapを返す
+  Map<DateTime, int> unusedlimitDateRestNumMap() {
+    Map<DateTime, int> limitDateMap = {};
+    for (var i = 0; i < histories.length; i++) {
+      var limitDate = histories[i].limitDate;
+      if (!histories[i].isUsed) {
+        if (limitDateMap.containsKey(limitDate)) {
+          limitDateMap[limitDate] = limitDateMap[limitDate]! + 1;
+        } else {
+          limitDateMap[limitDate] = 1;
+        }
+      }
+    }
+    return limitDateMap;
   }
 
   // int restDays() {
@@ -145,6 +165,7 @@ class Zaiko {
 
 class History {
   String productId;
+  String historyId;
 
   bool isUsed;
   DateTime buyDate;
@@ -157,6 +178,7 @@ class History {
 
   History({
     required this.productId,
+    required this.historyId,
     required this.isUsed,
     required this.buyDate,
     required this.limitDate,
@@ -170,6 +192,7 @@ class History {
   History.fromJson(Map<String, Object?> json)
       : this(
             productId: json['productId']! as String,
+            historyId: json['historyId']! as String,
             isUsed: json['isUsed']! as bool,
             buyDate: (json['buyDate']! as Timestamp).toDate() as DateTime,
             limitDate: (json['limitDate']! as Timestamp).toDate() as DateTime,
@@ -187,6 +210,7 @@ class History {
     }
     return {
       'productId': productId,
+      'historyId': historyId,
       'isUsed': isUsed,
       'buyDate': Timestamp.fromDate(buyDate),
       'limitDate': Timestamp.fromDate(limitDate),
