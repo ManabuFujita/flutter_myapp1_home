@@ -1,25 +1,28 @@
-import 'dart:convert';
+import 'package:flutter/material.dart';
+// import 'dart:convert';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+// import 'package:firebase_core/firebase_core.dart';
+
+// import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_myapp1_home/main.dart';
 import 'package:flutter_myapp1_home/model/yahooProduct.dart';
 import 'package:flutter_myapp1_home/model/zaiko.dart';
+// import 'package:flutter_myapp1_home/model/zaikoSearch.dart';
 import 'package:flutter_myapp1_home/repository/zaikoRepository.dart';
+import 'package:flutter_myapp1_home/repository/zaikoSearchRepository.dart';
 import 'package:flutter_myapp1_home/screens/home.dart';
-import 'package:flutter_myapp1_home/widgets/anniversary_item.dart';
+// import 'package:flutter_myapp1_home/widgets/anniversary_item.dart';
 import 'package:flutter_myapp1_home/widgets/zaiko_item.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-import '../model/Anniversary.dart';
+// import '../model/Anniversary.dart';
 import '../constants/colors.dart';
-import '../widgets/anniversary_item.dart';
-import '../repository/anniversaryRepository.dart';
-import 'package:http/http.dart' as http;
+// import '../widgets/anniversary_item.dart';
+// import '../repository/anniversaryRepository.dart';
+// import 'package:http/http.dart' as http;
 
 class ZaikoPage extends ConsumerStatefulWidget {
   const ZaikoPage({Key? key}) : super(key: key);
@@ -29,20 +32,40 @@ class ZaikoPage extends ConsumerStatefulWidget {
 }
 
 class _ZaikoPageState extends ConsumerState<ZaikoPage> {
-  final aniversariesList = Anniversary.anniversaryList();
+  // final aniversariesList = Anniversary.anniversaryList();
   // List<Anniversary> _foundAnniversary = [];
-  final _anniversaryController = TextEditingController();
 
-  final userId = FirebaseAuth.instance.currentUser!.uid;
+  final _textSearchWantController = TextEditingController();
+  bool _isShopping = false;
+
+  late String userId;
 
   // final Stream<QuerySnapshot> _anniversariesStream = FirebaseFirestore.instance
   //     .collection('anniversaries')
   //     .where("userId", isEqualTo: userId)
   //     .snapshots();
+  ZaikoSearchRepository zaikoSearchRepository = ZaikoSearchRepository();
+
+  List<ZaikoList> _zaikoLists = [];
+  List<String> _zaikoListsearches = [];
+
+  //   final userProvider = StateProvider((ref) {
+  //   return _zaikoLists;
+  // });
 
   @override
   void initState() {
     // _foundAnniversary = aniversariesList;
+    _textSearchWantController.text = '';
+    _isShopping = false;
+
+    userId = FirebaseAuth.instance.currentUser!.uid;
+
+    Future(() async {
+      _zaikoListsearches =
+          await zaikoSearchRepository.getSearchWordsList(userId, 5);
+    });
+
     super.initState();
   }
 
@@ -63,31 +86,121 @@ class _ZaikoPageState extends ConsumerState<ZaikoPage> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             print("Error snapshot waiting");
             print("UserId: $userIdProvider");
-            return const Text("Loading");
+            // return const Text("Loading");
+            // return Container(
+            //     alignment: Alignment.center,
+            //     child: const CircularProgressIndicator(
+            //       color: Colors.green,
+            //     ));
+
+            if (snapshot.data == null) {
+              return Container(
+                  alignment: Alignment.center,
+                  child: const CircularProgressIndicator(
+                    color: Colors.green,
+                  ));
+            }
           }
 
-          // DBから取得したデータを処理
-          List<ZaikoList> zaikos = snapshot.data!.docs.map((doc) {
-            // スナップショットから Anniversary オブジェクトのリストを作成
-            Zaiko zaiko = Zaiko.fromJson(doc.data() as Map<String, dynamic>);
+          // DBから取得したsnapshotデータを処理
+          makeZaikoList(snapshot);
 
-            ZaikoList zaikoList = ZaikoList(
-                zaiko: zaiko,
-                restNumber: zaiko.restNumber(),
-                limitDate: zaiko.nearestLimitDate());
-            // return Anniversary.fromJson(doc.data() as Map<String, dynamic>);
+          var hasWantItem =
+              _zaikoLists.any((element) => element.zaiko.isWantToBuy);
 
-            return zaikoList;
-          }).toList();
+          // ZaikoList作成
 
-          // limitdate降順にソートする
-          // zaikos.sort((a, b) => b.limitDate.compareTo(a.limitDate));
+          var lists = [
+            //　欲しいものリストがある場合のみ表示
+            hasWantItem
+                ? Container(
+                    margin: const EdgeInsets.only(
+                      top: 50,
+                      bottom: 20,
+                    ),
+                    child: const Text(
+                      '買いたいものリスト',
+                      style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  )
+                : Container(),
+            // zaikolistの数だけ、isWantToBuyがtrueのものを表示
+            for (ZaikoList item in _zaikoLists)
+              if (item.zaiko.isWantToBuy)
+                ZaikoItem(
+                  zaiko: item.zaiko,
+                  restNumber: item.restNumber,
+                  limitDate: item.limitDate,
+                  onDeleteItem: _deleteZaikoItem,
+                  onUsedItem: _usedZaikoItem,
+                  onSelectItem: _changeZaikoItem,
+                  onWantItem: _toggleWantItem,
+                  isWantItem: item.zaiko.isWantToBuy,
+                  isShopping: _isShopping,
+                  estimatedLimitDate: item.zaiko.estimatedLimitDate(),
+                  selectedDate: item.zaiko.estimatedLimitDate(),
+                  // onSelectCalender: _selectItemCalender,
+                  limitCalenderDate: item.limitCalenderDate,
+                  buyNumber: item.buyNumber,
+                ),
 
-          // limitdate昇順にソートする
-          zaikos.sort((a, b) => a.limitDate.compareTo(b.limitDate));
-
-          // List<Anniversary> anniversariesSorted = zaikos
-          //   ..sort((a, b) => a.restDays().compareTo(b.restDays()));
+            // 在庫リスト
+            Container(
+              margin: const EdgeInsets.only(
+                top: 36,
+                bottom: 20,
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    alignment: Alignment.center,
+                    child: const Text(
+                      '在庫リスト',
+                      style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 24,
+                  ),
+                  _textSearchWantController.text != ''
+                      ? Container(
+                          alignment: Alignment.center,
+                          child: ElevatedButton(
+                              onPressed: () {
+                                _clearFilter();
+                              },
+                              child: Text(
+                                  'Filter: ${_textSearchWantController.text} ×')),
+                        )
+                      : Container(),
+                ],
+              ),
+            ),
+            for (ZaikoList item in _zaikoLists)
+              ZaikoItem(
+                zaiko: item.zaiko,
+                restNumber: item.restNumber,
+                limitDate: item.limitDate,
+                onDeleteItem: _deleteZaikoItem,
+                onUsedItem: _usedZaikoItem,
+                onSelectItem: _changeZaikoItem,
+                onWantItem: _toggleWantItem,
+                isWantItem: item.zaiko.isWantToBuy,
+                isShopping: _isShopping,
+                estimatedLimitDate: item.zaiko.estimatedLimitDate(),
+                selectedDate: item.zaiko.estimatedLimitDate(),
+                // onSelectCalender: _selectItemCalender,
+                limitCalenderDate: item.limitCalenderDate,
+                buyNumber: item.buyNumber,
+              ),
+          ];
 
           return Scaffold(
               backgroundColor: tdBGColor,
@@ -104,33 +217,51 @@ class _ZaikoPageState extends ConsumerState<ZaikoPage> {
                     ),
                     child: Column(
                       children: [
+                        // 検索バー
                         searchBox(),
+
+                        // 買い物中ボタン
+                        Row(
+                          children: [
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                primary: _isShopping ? tdBlue : Colors.white,
+                                onPrimary: _isShopping ? Colors.white : tdBlue,
+                                side: BorderSide(color: tdBlue),
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isShopping = !_isShopping;
+                                });
+                              },
+                              child: Text(_isShopping ? '買い物中' : '買い物する'),
+                            ),
+                          ],
+                        ),
+
+                        // フィルターがかかっている場合のみ表示
+                        _textSearchWantController.text != ''
+                            ? Row(
+                                children: [
+                                  SizedBox(
+                                    width: 24,
+                                  ),
+                                  Container(
+                                    alignment: Alignment.center,
+                                    child: ElevatedButton(
+                                        onPressed: () {
+                                          _clearFilter();
+                                        },
+                                        child: Text(
+                                            'Filter: ${_textSearchWantController.text} ×')),
+                                  ),
+                                ],
+                              )
+                            : Container(),
+
                         Expanded(
                           child: ListView(
-                            children: [
-                              Container(
-                                margin: const EdgeInsets.only(
-                                  top: 50,
-                                  bottom: 20,
-                                ),
-                                child: const Text(
-                                  'Zaiko',
-                                  style: TextStyle(
-                                    fontSize: 30,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                              for (ZaikoList item in zaikos)
-                                ZaikoItem(
-                                  zaiko: item.zaiko,
-                                  restNumber: item.restNumber,
-                                  limitDate: item.limitDate,
-                                  onDeleteItem: _deleteZaikoItem,
-                                  onUsedItem: _usedZaikoItem,
-                                  onSelectItem: _changeZaikoItem,
-                                ),
-                            ],
+                            children: lists,
                           ),
                         ),
                       ],
@@ -154,6 +285,58 @@ class _ZaikoPageState extends ConsumerState<ZaikoPage> {
         });
   }
 
+  // zaikoItems(BuildContext context) {
+  //   _zaikoLists.forEach((item) => ZaikoItem(
+  //         zaiko: item.zaiko,
+  //         restNumber: item.restNumber,
+  //         limitDate: item.limitDate,
+  //         onDeleteItem: _deleteZaikoItem,
+  //         onUsedItem: _usedZaikoItem,
+  //         onSelectItem: _changeZaikoItem,
+  //         onWantItem: _toggleWantItem,
+  //         isWantItem: item.zaiko.isWantToBuy,
+  //         isShopping: _isShopping,
+  //         estimatedLimitDate: item.zaiko.estimatedLimitDate(),
+  //         selectedDate: item.zaiko.estimatedLimitDate(),
+  //         onSelectCalender: _selectItemCalender,
+  //         limitCalenderDate: item.limitCalenderDate,
+  //       ));
+  //   // Add a return statement at the end of the function
+  //   // return Container();
+  // }
+
+  makeZaikoList(AsyncSnapshot<QuerySnapshot> snapshot) {
+    _zaikoLists = snapshot.data!.docs.map((doc) {
+      // スナップショットから Anniversary オブジェクトのリストを作成
+      Zaiko zaiko = Zaiko.fromJson(doc.data() as Map<String, dynamic>);
+
+      ZaikoList zaikoList = ZaikoList(
+          zaiko: zaiko,
+          restNumber: zaiko.restNumber(),
+          limitDate: zaiko.nearestLimitDate(),
+          limitCalenderDate: zaiko.nearestLimitDate(),
+          buyNumber: 1);
+      // return Anniversary.fromJson(doc.data() as Map<String, dynamic>);
+
+      return zaikoList;
+    }).toList();
+
+    // limitdate降順にソートする
+    // zaikos.sort((a, b) => b.limitDate.compareTo(a.limitDate));
+
+    // limitdate昇順にソートする
+    _zaikoLists.sort((a, b) => a.limitDate.compareTo(b.limitDate));
+
+    // 検索バーのフィルター処理
+    if (_textSearchWantController.text.isNotEmpty) {
+      _zaikoLists = _zaikoLists
+          .where((item) => item.zaiko!.name
+              .toLowerCase()
+              .contains(_textSearchWantController.text.toLowerCase()))
+          .toList();
+    }
+  }
+
   void _deleteZaikoItem(Zaiko zaiko) async {
     // setState(() {
     //   aniversariesList.removeWhere((item) => item.id == id);
@@ -174,6 +357,24 @@ class _ZaikoPageState extends ConsumerState<ZaikoPage> {
     await zaikoRepository.decrement(zaiko);
   }
 
+  // Future<void> _selectItemCalender(
+  //     BuildContext context, ZaikoItem zaikoItem, DateTime selectedDate) async {
+  //   final DateTime? picked = await showDatePicker(
+  //     context: context,
+  //     initialDate: selectedDate, // 最初に表示する日付
+  //     firstDate: DateTime(1900), // 選択できる日付の最小値
+  //     lastDate: DateTime(2101), // 選択できる日付の最大値
+  //   );
+
+  //   if (picked != null) {
+  //     setState(() {
+  //       // 選択された日付を変数に代入
+  //       zaikoItem.limitCalenderDate = picked;
+  //       // selectedDate = picked;
+  //     });
+  //   }
+  // }
+
   void _changeZaikoItem(Zaiko zaiko) async {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (context) {
@@ -183,60 +384,140 @@ class _ZaikoPageState extends ConsumerState<ZaikoPage> {
     );
   }
 
-  void _runFilter(String enteredKeyword) {
-    List<Anniversary> results = [];
-    if (enteredKeyword.isEmpty) {
-      results = aniversariesList;
+  void _toggleWantItem(Zaiko zaiko) async {
+    // DB保存
+    ZaikoRepository zaikoRepository = ZaikoRepository();
+    if (zaiko.isWantToBuy) {
+      await zaikoRepository.removeWant(zaiko);
     } else {
-      results = aniversariesList
-          .where((item) =>
-              item.name!.toLowerCase().contains(enteredKeyword.toLowerCase()))
-          .toList();
+      await zaikoRepository.addWant(zaiko);
     }
 
     setState(() {
-      // _foundAnniversary = results;
+      // _textSearchWantController.text = '';
     });
+  }
+
+  void _setFilter(String enteredKeyword) {
+    setState(() {
+      _textSearchWantController.text = enteredKeyword;
+    });
+  }
+
+  void _clearFilter() {
+    setState(() {
+      _textSearchWantController.text = '';
+    });
+  }
+
+  void _updateSearchQuery(String newQuery) {
+    if (newQuery == '') {
+      return;
+    }
+    zaikoSearchRepository.updateSearchCount(userId, newQuery);
   }
 
   Widget searchBox() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: TextField(
-        onChanged: (value) => _runFilter(value),
-        decoration: const InputDecoration(
-          contentPadding: EdgeInsets.all(0),
-          prefixIcon: Icon(
-            Icons.search,
-            color: tdBlack,
-            size: 20,
+      margin: const EdgeInsets.only(top: 10),
+      child: Row(children: [
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Autocomplete(
+              optionsBuilder: (textEdigingValue) {
+                // if (textEdigingValue.text == '') {
+                //   return const Iterable<String>.empty();
+                // }
+                return _zaikoListsearches
+                    .where((option) => option.contains(textEdigingValue.text));
+              },
+              fieldViewBuilder:
+                  (context, controller, focusNode, onFieldSubmitted) {
+                return TextField(
+                  controller: _textSearchWantController,
+                  onChanged: (value) => _setFilter(value),
+                  onSubmitted: (value) => _updateSearchQuery(value),
+                  focusNode: focusNode,
+                  decoration: InputDecoration(
+                    contentPadding: const EdgeInsets.all(0),
+                    prefixIcon: const Icon(
+                      Icons.search,
+                      color: tdBlack,
+                      size: 20,
+                    ),
+                    prefixIconConstraints: const BoxConstraints(
+                      maxHeight: 20,
+                      minWidth: 25,
+                    ),
+                    suffixIcon: IconButton(
+                        onPressed: () {
+                          _clearFilter();
+                        },
+                        icon: const Icon(
+                          Icons.clear,
+                          color: tdBlack,
+                          size: 20,
+                        )),
+                    suffixIconConstraints: const BoxConstraints(
+                      maxHeight: 20,
+                      minWidth: 25,
+                    ),
+                    border: InputBorder.none,
+                    hintText: '検索 / 買いたいものを追加',
+                    hintStyle: TextStyle(color: tdGrey),
+                  ),
+                );
+              },
+            ),
           ),
-          prefixIconConstraints: BoxConstraints(
-            maxHeight: 20,
-            minWidth: 25,
-          ),
-          border: InputBorder.none,
-          hintText: 'Search',
-          hintStyle: TextStyle(color: tdGrey),
         ),
-      ),
+        Container(
+          margin: const EdgeInsets.only(left: 10),
+          child: ElevatedButton(
+            onPressed: () {
+              // 追加処理
+              // _addWantItem();
+            },
+            child: Text('新しく買いたいものを追加'),
+          ),
+        ),
+      ]),
     );
   }
+
+  // final List<String> _optionList = [
+  //   "option1",
+  //   "option2",
+  //   "option3",
+  //   "option4",
+  //   "option5",
+  // ];
 }
 
 class ZaikoList {
   Zaiko zaiko;
   int restNumber;
   DateTime limitDate;
+  DateTime limitCalenderDate;
+  int buyNumber;
 
-  ZaikoList(
-      {required this.zaiko, required this.restNumber, required this.limitDate});
+  ZaikoList({
+    required this.zaiko,
+    required this.restNumber,
+    required this.limitDate,
+    required this.limitCalenderDate,
+    required this.buyNumber,
+  });
 }
 
+/// -------------------------------------
+/// 新規追加ページ
+/// -------------------------------------
 class ZaikoAddPage extends StatefulWidget {
   final Zaiko? zaiko;
 
@@ -267,9 +548,15 @@ class _ZaikoAddPageState extends State<ZaikoAddPage> {
 
   Zaiko? zaiko;
 
+  // 今日の日付を取得
+  late DateTime _now;
+  late DateTime _today;
+
   @override
   void initState() {
     zaiko = widget.zaiko;
+    _now = DateTime.now();
+    _today = DateTime(_now.year, _now.month, _now.day);
 
     if (zaiko == null) {
       _textNameController.text = '';
@@ -277,17 +564,19 @@ class _ZaikoAddPageState extends State<ZaikoAddPage> {
       _textProductController.text = '';
       _radioValueStrictLimit = false;
       _zaikoLimitDate = {};
-      _selectedDate = DateTime.now();
+      _selectedDate = _today;
       _numberController.text = '1';
+      _textUnitNameController.text = '';
     } else {
       _textNameController.text = zaiko!.name;
       _textCodeController.text = zaiko!.code;
       _textProductController.text = '';
       _radioValueStrictLimit = zaiko!.isStrictLimit;
       _zaikoLimitDate = zaiko!.unusedlimitDateRestNumMap();
-      _selectedDate = DateTime.now();
+      _selectedDate = _today;
       // _numberController.text = zaiko!.restNumber().toString();
       _numberController.text = '1';
+      _textUnitNameController.text = zaiko!.unitName;
     }
 
     super.initState();
@@ -760,6 +1049,7 @@ class _ZaikoAddPageState extends State<ZaikoAddPage> {
     _limitDateWidgetList.add(SizedBox(height: 10));
     _limitDateWidgetList.add(Divider(height: 1));
     _limitDateWidgetList.add(SizedBox(height: 10));
+    _limitDateWidgetList.add(Row(children: [Text('◆追加分')]));
     _limitDateWidgetList.add(getNewZaikoInfo());
 
     return _limitDateWidgetList;
@@ -829,8 +1119,9 @@ class _ZaikoAddPageState extends State<ZaikoAddPage> {
           code: _textCodeController.text,
           lastBuyDate: now,
           isStrictLimit: _radioValueStrictLimit,
-          unitName: _textUnitNameController.text,
           histories: histories,
+          unitName: _textUnitNameController.text,
+          isWantToBuy: false,
           createdAt: now,
           updatedAt: now,
           deletedAt: null);
@@ -841,6 +1132,12 @@ class _ZaikoAddPageState extends State<ZaikoAddPage> {
     } else {
       // 更新
       productId = zaiko.productId;
+
+      zaiko.name = _textNameController.text;
+      zaiko.code = _textCodeController.text;
+      zaiko.isStrictLimit = _radioValueStrictLimit;
+      zaiko.unitName = _textUnitNameController.text;
+      zaiko.updatedAt = now;
 
       // historiesの追加
       List<History> histories = zaiko.histories;
@@ -886,7 +1183,7 @@ class _ZaikoAddPageState extends State<ZaikoAddPage> {
     return History(
       productId: productId,
       historyId: historyId,
-      isUsed: false,
+      // isUsed: false,
       buyDate: buyDate,
       limitDate: limitDate,
       useDate: null,
@@ -951,7 +1248,7 @@ class _CameraPageState extends State<CameraPage> {
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
+          children: [
             SizedBox(
               height: 400,
               width: 400,

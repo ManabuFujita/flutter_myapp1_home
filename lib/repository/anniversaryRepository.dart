@@ -12,13 +12,13 @@ class AnniversaryRepository {
   ///
   /// データを取得する
   ///
-  Future<List<QueryDocumentSnapshot<Anniversary>>> getAnniversaries() async {
-    final dataRef = anniversariesManager.withConverter<Anniversary>(
-        fromFirestore: (snapshot, _) => Anniversary.fromJson(snapshot.data()!),
-        toFirestore: (school, _) => school.toJson());
-    final dataSnapshot = await dataRef.get();
-    return dataSnapshot.docs;
-  }
+  // Future<List<QueryDocumentSnapshot<Anniversary>>> getAnniversaries() async {
+  //   final dataRef = anniversariesManager.withConverter<Anniversary>(
+  //       fromFirestore: (snapshot, _) => Anniversary.fromJson(snapshot.data()!),
+  //       toFirestore: (school, _) => school.toJson());
+  //   final dataSnapshot = await dataRef.get();
+  //   return dataSnapshot.docs;
+  // }
 
   // Future<Map<String, dynamic>> getAnniversaries(String userId) async {
   //   anniversariesManager.doc(userId).get().then(

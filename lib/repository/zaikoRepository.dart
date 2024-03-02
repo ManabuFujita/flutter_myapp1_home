@@ -13,7 +13,7 @@ class ZaikoRepository {
   ///
   /// データを取得する
   ///
-  Future<List<QueryDocumentSnapshot<Zaiko>>> getAnniversaries() async {
+  Future<List<QueryDocumentSnapshot<Zaiko>>> getZaikos() async {
     final dataRef = zaikosManager.withConverter<Zaiko>(
         fromFirestore: (snapshot, _) => Zaiko.fromJson(snapshot.data()!),
         toFirestore: (school, _) => school.toJson());
@@ -99,8 +99,8 @@ class ZaikoRepository {
 
               for (var i = 0; i < histories.length; i++) {
                 if (histories[i]['historyId'] == oldestId) {
+                  histories[i]['useDate'] = DateTime.now();
                   histories[i]['isUsed'] = true;
-                  histories[i]['usedDate'] = DateTime.now();
                 }
               }
 
@@ -171,5 +171,39 @@ class ZaikoRepository {
       }
     }
     return popularNames;
+  }
+
+  // isWantToBuyをtrueに変更
+  Future<void> addWant(Zaiko zaiko) async {
+    await zaikosManager
+        .where('userId', isEqualTo: zaiko.userId)
+        .where('productId', isEqualTo: zaiko.productId)
+        .get()
+        .then(
+          (QuerySnapshot snapshot) => {
+            snapshot.docs.forEach((f) {
+              zaikosManager.doc(f.reference.id).update({
+                'isWantToBuy': true,
+              });
+            }),
+          },
+        );
+  }
+
+  // isWantToBuyをfalseに変更
+  Future<void> removeWant(Zaiko zaiko) async {
+    await zaikosManager
+        .where('userId', isEqualTo: zaiko.userId)
+        .where('productId', isEqualTo: zaiko.productId)
+        .get()
+        .then(
+          (QuerySnapshot snapshot) => {
+            snapshot.docs.forEach((f) {
+              zaikosManager.doc(f.reference.id).update({
+                'isWantToBuy': false,
+              });
+            }),
+          },
+        );
   }
 }

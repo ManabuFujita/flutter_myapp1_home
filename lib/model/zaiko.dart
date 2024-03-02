@@ -9,9 +9,9 @@ class Zaiko {
   String code;
   DateTime lastBuyDate;
   bool isStrictLimit;
-  String unitName;
-
   List<History> histories;
+  String unitName;
+  bool isWantToBuy;
 
   DateTime createdAt;
   DateTime updatedAt;
@@ -24,8 +24,9 @@ class Zaiko {
     required this.code,
     required this.lastBuyDate,
     required this.isStrictLimit,
-    required this.unitName,
     required this.histories,
+    required this.unitName,
+    required this.isWantToBuy,
     required this.createdAt,
     required this.updatedAt,
     this.deletedAt,
@@ -60,6 +61,7 @@ class Zaiko {
                 .map((e) => History.fromJson(e as Map<String, Object?>))
                 .toList(),
             unitName: json['unitName']! as String,
+            isWantToBuy: json['isWantToBuy']! as bool,
             createdAt: (json['createdAt']! as Timestamp).toDate() as DateTime,
             updatedAt: (json['updatedAt']! as Timestamp).toDate() as DateTime,
             deletedAt:
@@ -80,6 +82,7 @@ class Zaiko {
       'isStrictLimit': isStrictLimit,
       'histories': histories.map((e) => e.toJson()).toList(),
       'unitName': unitName,
+      'isWantToBuy': isWantToBuy,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
       'deletedAt': deletedTimestamp,
@@ -90,28 +93,65 @@ class Zaiko {
   int restNumber() {
     int restNum = 0;
     for (var i = 0; i < histories.length; i++) {
-      if (histories[i].isUsed == false) {
+      if (histories[i].useDate == null) {
         restNum++;
       }
     }
     return restNum;
   }
 
-  // histriesから、buydateとusedateの差分の平均を返す
-  double averageUseDays() {
-    int restDays = 0;
-    int restNum = 0;
+  // 使用履歴の有無
+  bool hasUsedHistory() {
     for (var i = 0; i < histories.length; i++) {
-      if (histories[i].isUsed) {
-        restDays +=
-            histories[i].buyDate.difference(histories[i].useDate!).inDays;
-        restNum++;
+      if (histories[i].useDate != null) {
+        return true;
       }
     }
-    return restDays / restNum;
+    return false;
   }
 
-  // histriesから、buydateとlimitdateの差分の平均を返す
+  // 最終購入日を返す
+  DateTime lastBuyDateFromHistories() {
+    DateTime startDate = DateTime.now().add(Duration(days: -365 * 50));
+    startDate =
+        DateTime(startDate.year, startDate.month, startDate.day); // 時刻を切り捨て
+
+    DateTime lastBuyDate = startDate;
+    for (var i = 0; i < histories.length; i++) {
+      if (lastBuyDate.isBefore(histories[i].buyDate)) {
+        lastBuyDate = histories[i].buyDate;
+      }
+    }
+    return startDate.millisecondsSinceEpoch < lastBuyDate.millisecondsSinceEpoch
+        ? lastBuyDate
+        : DateTime.now();
+  }
+
+  // histriesから、購入日と使用日の差分の平均を返す
+  int averageUseDays() {
+    int useDays = 0;
+    int useNum = 0;
+    for (var i = 0; i < histories.length; i++) {
+      if (histories[i].useDate != null) {
+        useDays +=
+            histories[i].useDate!.difference(histories[i].buyDate).inDays;
+        useNum++;
+      }
+    }
+
+    return useNum > 0 ? (useDays / useNum).ceil() : 0;
+  }
+
+  // 予測した最終使用日（在庫が0になる日）を返す
+  DateTime estimatedAllUseDate() {
+    DateTime lastBuyDate = lastBuyDateFromHistories();
+    lastBuyDate =
+        DateTime(lastBuyDate.year, lastBuyDate.month, lastBuyDate.day);
+
+    return lastBuyDate.add(Duration(days: restNumber() * averageUseDays()));
+  }
+
+  // histriesから、購入日と期限の差分の平均を返す
   double averageLimitDays() {
     int limitDays = 0;
     int limitNum = 0;
@@ -123,11 +163,19 @@ class Zaiko {
     return limitDays / limitNum;
   }
 
+  // 予測した期限を返す
+  DateTime estimatedLimitDate() {
+    DateTime now = DateTime.now();
+    DateTime today = DateTime(now.year, now.month, now.day);
+
+    return today.add(Duration(days: averageLimitDays().round()));
+  }
+
   // histriesから、isUsed==falseで最古のlimitdateを返す
   DateTime nearestLimitDate() {
     DateTime oldestDate = DateTime.now().add(Duration(days: 365 * 50));
     for (var i = 0; i < histories.length; i++) {
-      if (!histories[i].isUsed) {
+      if (histories[i].useDate == null) {
         if (oldestDate.isAfter(histories[i].limitDate)) {
           oldestDate = histories[i].limitDate;
         }
@@ -141,7 +189,7 @@ class Zaiko {
     Map<DateTime, int> limitDateMap = {};
     for (var i = 0; i < histories.length; i++) {
       var limitDate = histories[i].limitDate;
-      if (!histories[i].isUsed) {
+      if (histories[i].useDate == null) {
         if (limitDateMap.containsKey(limitDate)) {
           limitDateMap[limitDate] = limitDateMap[limitDate]! + 1;
         } else {
@@ -167,7 +215,7 @@ class History {
   String productId;
   String historyId;
 
-  bool isUsed;
+  // bool isUsed;
   DateTime buyDate;
   DateTime limitDate;
   DateTime? useDate;
@@ -179,7 +227,7 @@ class History {
   History({
     required this.productId,
     required this.historyId,
-    required this.isUsed,
+    // required this.isUsed,
     required this.buyDate,
     required this.limitDate,
     this.useDate,
@@ -193,7 +241,7 @@ class History {
       : this(
             productId: json['productId']! as String,
             historyId: json['historyId']! as String,
-            isUsed: json['isUsed']! as bool,
+            // isUsed: json['isUsed']! as bool,
             buyDate: (json['buyDate']! as Timestamp).toDate() as DateTime,
             limitDate: (json['limitDate']! as Timestamp).toDate() as DateTime,
             useDate: (json['useDate'] as Timestamp?)?.toDate() as DateTime?,
@@ -211,7 +259,7 @@ class History {
     return {
       'productId': productId,
       'historyId': historyId,
-      'isUsed': isUsed,
+      // 'isUsed': isUsed,
       'buyDate': Timestamp.fromDate(buyDate),
       'limitDate': Timestamp.fromDate(limitDate),
       'useDate': useDate != null ? Timestamp.fromDate(useDate!) : null,
