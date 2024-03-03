@@ -63,9 +63,7 @@ class ZaikoRepository {
   //       .onError((e, _) => print("Error writing document: $e"));
   // }
 
-  ///
-  /// データを削除する
-  ///
+  // データを削除する
   Future<void> delete(Zaiko zaiko) async {
     await zaikosManager
         .where('userId', isEqualTo: zaiko.userId)
@@ -81,9 +79,7 @@ class ZaikoRepository {
         );
   }
 
-  ///
-  /// 個数を減らす
-  ///
+  // 個数を減らす
   Future<void> decrement(Zaiko zaiko) async {
     String oldestId = await getOldestLimitDateId(zaiko);
 
@@ -205,5 +201,54 @@ class ZaikoRepository {
             }),
           },
         );
+  }
+
+  // nameで検索して有無を返す
+  Future<bool> isExistName(String userId, String name) async {
+    bool isExist = false;
+    await zaikosManager
+        .where('userId', isEqualTo: userId)
+        .where('name', isEqualTo: name)
+        .get()
+        .then(
+          (QuerySnapshot snapshot) => {
+            if (snapshot.docs.isNotEmpty) {isExist = true},
+          },
+        );
+    return isExist;
+  }
+
+  // nameからzaikoのProductIdを取得
+  Future<String> getProductIdByName(String userId, String name) async {
+    String productId = '';
+    Object? zaiko;
+    await zaikosManager
+        .where('userId', isEqualTo: userId)
+        .where('name', isEqualTo: name)
+        .get()
+        .then(
+          (QuerySnapshot snapshot) => {
+            if (snapshot.docs.isNotEmpty)
+              productId = snapshot.docs[0]['productId'] as String,
+          },
+        );
+    return productId;
+  }
+
+  // productIdからzaikoを取得
+  Future<Zaiko?> getZaikoByProductId(String userId, String productId) async {
+    Zaiko? zaiko;
+    await zaikosManager
+        .where('userId', isEqualTo: userId)
+        .where('productId', isEqualTo: productId)
+        .get()
+        .then(
+          (QuerySnapshot snapshot) => {
+            if (snapshot.docs.isNotEmpty)
+              zaiko = Zaiko.fromJson(
+                  snapshot.docs[0].data() as Map<String, Object?>),
+          },
+        );
+    return zaiko;
   }
 }

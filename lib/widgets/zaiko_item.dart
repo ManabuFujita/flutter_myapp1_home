@@ -240,17 +240,6 @@ class _ZaikoItemState extends State<ZaikoItem> {
                         );
                       },
                       child: Text('買いたい')),
-                  ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          // backgroundColor: Colors.yellow,
-                          foregroundColor: Colors.orange,
-                          side: BorderSide(color: Colors.orange)),
-                      onPressed: () {
-                        widget.onUsedItem(
-                          widget.zaiko,
-                        );
-                      },
-                      child: Text('1つ使った')),
                 ],
               )
             : Wrap(

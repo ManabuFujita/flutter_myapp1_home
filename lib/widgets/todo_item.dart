@@ -3,15 +3,15 @@ import 'package:flutter/material.dart';
 import '../model/todo.dart';
 import '../constants/colors.dart';
 
-class ToDoItem extends StatelessWidget {
-  final ToDo todo;
-  final onToDoChanged;
+class TodoItem extends StatelessWidget {
+  final Todo todo;
+  final onTodoChanged;
   final onDeleteItem;
 
-  const ToDoItem({
+  const TodoItem({
     Key? key,
     required this.todo,
-    required this.onToDoChanged,
+    required this.onTodoChanged,
     required this.onDeleteItem,
   }) : super(key: key);
 
@@ -22,7 +22,7 @@ class ToDoItem extends StatelessWidget {
       child: ListTile(
         onTap: () {
           // print('Clicked on Todo Item.');
-          onToDoChanged(todo);
+          onTodoChanged(todo);
         },
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
@@ -39,6 +39,13 @@ class ToDoItem extends StatelessWidget {
             fontSize: 16,
             color: tdBlack,
             decoration: todo.isDone ? TextDecoration.lineThrough : null,
+          ),
+        ),
+        subtitle: Text(
+          '次やる日: ${formatDate(todo.nextDate)}',
+          style: TextStyle(
+            fontSize: 12,
+            color: tdBlack,
           ),
         ),
         trailing: Container(
@@ -62,5 +69,10 @@ class ToDoItem extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  // 日付フォーマット yyyy/mm/dd
+  String formatDate(DateTime date) {
+    return '${date.year}/${date.month}/${date.day}';
   }
 }

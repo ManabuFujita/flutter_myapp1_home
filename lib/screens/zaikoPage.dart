@@ -8,12 +8,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_myapp1_home/main.dart';
 import 'package:flutter_myapp1_home/model/yahooProduct.dart';
 import 'package:flutter_myapp1_home/model/zaiko.dart';
+import 'package:flutter_myapp1_home/model/zaikoWantToBuy.dart';
 // import 'package:flutter_myapp1_home/model/zaikoSearch.dart';
 import 'package:flutter_myapp1_home/repository/zaikoRepository.dart';
 import 'package:flutter_myapp1_home/repository/zaikoSearchRepository.dart';
+import 'package:flutter_myapp1_home/repository/zaikoWantToBuyRepository.dart';
 import 'package:flutter_myapp1_home/screens/home.dart';
 // import 'package:flutter_myapp1_home/widgets/anniversary_item.dart';
 import 'package:flutter_myapp1_home/widgets/zaiko_item.dart';
+import 'package:flutter_myapp1_home/widgets/zaiko_want_item.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -45,9 +48,12 @@ class _ZaikoPageState extends ConsumerState<ZaikoPage> {
   //     .where("userId", isEqualTo: userId)
   //     .snapshots();
   ZaikoSearchRepository zaikoSearchRepository = ZaikoSearchRepository();
+  ZaikoWantToBuyRepository zaikoWantToBuyRepository =
+      ZaikoWantToBuyRepository();
 
   List<ZaikoList> _zaikoLists = [];
-  List<String> _zaikoListsearches = [];
+  List<String> _zaikoListSearches = [];
+  List<ZaikoWantToBuy> _zaikoWantToBuyList = [];
 
   //   final userProvider = StateProvider((ref) {
   //   return _zaikoLists;
@@ -62,8 +68,11 @@ class _ZaikoPageState extends ConsumerState<ZaikoPage> {
     userId = FirebaseAuth.instance.currentUser!.uid;
 
     Future(() async {
-      _zaikoListsearches =
+      _zaikoListSearches =
           await zaikoSearchRepository.getSearchWordsList(userId, 5);
+
+      _zaikoWantToBuyList =
+          await zaikoWantToBuyRepository.getZaikoWantToBuysList(userId);
     });
 
     super.initState();
@@ -105,14 +114,21 @@ class _ZaikoPageState extends ConsumerState<ZaikoPage> {
           // DBから取得したsnapshotデータを処理
           makeZaikoList(snapshot);
 
-          var hasWantItem =
+          // 在庫リストの欲しいもの
+          var hasZaikoWantItem =
               _zaikoLists.any((element) => element.zaiko.isWantToBuy);
+
+          // 在庫にない欲しいもの
+          var hasWantList = _zaikoWantToBuyList.isNotEmpty;
+
+          // 全ての欲しいもの
+          var hasWant = hasZaikoWantItem || hasWantList;
 
           // ZaikoList作成
 
           var lists = [
             //　欲しいものリストがある場合のみ表示
-            hasWantItem
+            hasWant
                 ? Container(
                     margin: const EdgeInsets.only(
                       top: 50,
@@ -127,6 +143,10 @@ class _ZaikoPageState extends ConsumerState<ZaikoPage> {
                     ),
                   )
                 : Container(),
+            // zaikoWantToBuyListを表示
+            for (ZaikoWantToBuy item in _zaikoWantToBuyList)
+              ZaikoWantItem(name: item.name),
+
             // zaikolistの数だけ、isWantToBuyがtrueのものを表示
             for (ZaikoList item in _zaikoLists)
               if (item.zaiko.isWantToBuy)
@@ -183,6 +203,8 @@ class _ZaikoPageState extends ConsumerState<ZaikoPage> {
                 ],
               ),
             ),
+
+            // zaikolist
             for (ZaikoList item in _zaikoLists)
               ZaikoItem(
                 zaiko: item.zaiko,
@@ -433,7 +455,7 @@ class _ZaikoPageState extends ConsumerState<ZaikoPage> {
                 // if (textEdigingValue.text == '') {
                 //   return const Iterable<String>.empty();
                 // }
-                return _zaikoListsearches
+                return _zaikoListSearches
                     .where((option) => option.contains(textEdigingValue.text));
               },
               fieldViewBuilder:
@@ -481,13 +503,52 @@ class _ZaikoPageState extends ConsumerState<ZaikoPage> {
           child: ElevatedButton(
             onPressed: () {
               // 追加処理
-              // _addWantItem();
+              _addWantItem();
             },
             child: Text('新しく買いたいものを追加'),
           ),
         ),
       ]),
     );
+  }
+
+  void _addWantItem() async {
+    // zaikoListを検索して、なければzaikoWantToBuyに追加する
+    ZaikoRepository zaikoRepository = ZaikoRepository();
+
+    var hasZaiko = await zaikoRepository.isExistName(
+        userId, _textSearchWantController.text);
+    var hasWantList;
+
+    if (hasZaiko) {
+      // zaikoListにあれば、isWantToBuyをtrueに変更
+      var productId = await zaikoRepository.getProductIdByName(
+          userId, _textSearchWantController.text);
+      var zaiko = await zaikoRepository.getZaikoByProductId(userId, productId);
+
+      // zaikoのisWantToBuyをtrueに変更
+      if (zaiko != null) {
+        await zaikoRepository.addWant(zaiko);
+      }
+    } else {
+      // 欲しいものリストに無ければ追加
+      ZaikoWantToBuyRepository zaikoWantToBuyRepository =
+          ZaikoWantToBuyRepository();
+      hasWantList = await zaikoWantToBuyRepository.isExist(
+          userId, _textSearchWantController.text);
+
+      if (!hasWantList) {
+        // zaikoWantToBuyに追加
+        var zaikoWantToBuy = ZaikoWantToBuy(
+          userId: userId,
+          name: _textSearchWantController.text,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+
+        await zaikoWantToBuyRepository.insert(zaikoWantToBuy);
+      }
+    }
   }
 
   // final List<String> _optionList = [

@@ -14,15 +14,15 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  final todosList = ToDo.todoList();
-  List<ToDo> _foundToDo = [];
+  // final todosList = ToDo.todoList();
+  List<Todo> _foundToDo = [];
   final _todoController = TextEditingController();
 
   final user = FirebaseAuth.instance.currentUser;
 
   @override
   void initState() {
-    _foundToDo = todosList;
+    // _foundToDo = todosList;
     super.initState();
   }
 
@@ -41,15 +41,15 @@ class _HomeState extends State<Home> {
   }
 
   void _runFilter(String enteredKeyword) {
-    List<ToDo> results = [];
+    List<Todo> results = [];
     if (enteredKeyword.isEmpty) {
-      results = todosList;
+      // results = todosList;
     } else {
-      results = todosList
-          .where((item) => item.todoText!
-              .toLowerCase()
-              .contains(enteredKeyword.toLowerCase()))
-          .toList();
+      // results = todosList
+      //     .where((item) => item.todoText!
+      //         .toLowerCase()
+      //         .contains(enteredKeyword.toLowerCase()))
+      //     .toList();
     }
 
     setState(() {
@@ -142,7 +142,6 @@ class BuildDrawer extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.favorite),
             title: const Text('Todo Page'),
             onTap: () {
               Navigator.pushNamed(context, '/todo', arguments: null);
