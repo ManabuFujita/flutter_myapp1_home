@@ -1,11 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_myapp1_home/main.dart';
-import 'package:flutter_myapp1_home/model/Anniversary.dart';
 import 'package:flutter_myapp1_home/model/zaiko.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/date_time_patterns.dart';
 
 class ZaikoRepository {
   final zaikosManager = FirebaseFirestore.instance.collection('zaikos');
@@ -221,7 +215,6 @@ class ZaikoRepository {
   // nameからzaikoのProductIdを取得
   Future<String> getProductIdByName(String userId, String name) async {
     String productId = '';
-    Object? zaiko;
     await zaikosManager
         .where('userId', isEqualTo: userId)
         .where('name', isEqualTo: name)

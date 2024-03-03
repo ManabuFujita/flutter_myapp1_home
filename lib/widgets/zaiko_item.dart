@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_myapp1_home/model/zaiko.dart';
 import "package:intl/intl.dart";
-import 'package:intl/date_symbol_data_local.dart';
 
-import '../model/Anniversary.dart';
 import '../constants/colors.dart';
 
 class ZaikoItem extends StatefulWidget {
@@ -46,23 +44,22 @@ class ZaikoItem extends StatefulWidget {
 
 class _ZaikoItemState extends State<ZaikoItem> {
   late Zaiko _zaiko;
-  late int _restNumber;
+  // late int _restNumber;
   late DateTime _limitDate;
-  var _onDeleteItem;
-  var _onUsedItem;
-  var _onSelectItem;
+  // var _onDeleteItem;
+  // var _onUsedItem;
+  // var _onSelectItem;
   var _onWantItem;
   late bool _isWantItem;
-  late bool _isShopping;
-  var _estimatedLimitDate;
-  var _selectedDate;
+  // late bool _isShopping;
+  // var _estimatedLimitDate;
+  // var _selectedDate;
   // final onSelectCalender;
   late DateTime _limitCalenderDate;
-  var _buyNumber;
+  // var _buyNumber;
 
   var _numberController = TextEditingController();
 
-  @override
   title() {
     return Text(
       widget.zaiko.name!,
@@ -113,19 +110,19 @@ class _ZaikoItemState extends State<ZaikoItem> {
     _onWantItem = widget.onWantItem;
 
     _zaiko = widget.zaiko;
-    _restNumber = widget.restNumber;
+    // _restNumber = widget.restNumber;
     _limitDate = widget.limitDate;
-    _onDeleteItem = widget.onDeleteItem;
-    _onUsedItem = widget.onUsedItem;
-    _onSelectItem = widget.onSelectItem;
+    // _onDeleteItem = widget.onDeleteItem;
+    // _onUsedItem = widget.onUsedItem;
+    // _onSelectItem = widget.onSelectItem;
     _onWantItem = widget.onWantItem;
     _isWantItem = widget.isWantItem;
-    _isShopping = widget.isShopping;
-    _estimatedLimitDate = widget.estimatedLimitDate;
-    _selectedDate = widget.selectedDate;
+    // _isShopping = widget.isShopping;
+    // _estimatedLimitDate = widget.estimatedLimitDate;
+    // _selectedDate = widget.selectedDate;
     // onSelectCalender = widget.onSelectCalender;
     _limitCalenderDate = widget.limitCalenderDate;
-    _buyNumber = widget.buyNumber;
+    // _buyNumber = widget.buyNumber;
 
     super.initState();
   }

@@ -1,22 +1,4 @@
-import 'dart:io';
-import 'dart:typed_data';
-
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_myapp1_home/main.dart';
-import 'package:flutter_myapp1_home/model/zaiko.dart';
-import 'package:flutter_myapp1_home/repository/zaikoRepository.dart';
-import 'package:flutter_myapp1_home/screens/home.dart';
-import 'package:flutter_myapp1_home/widgets/anniversary_item.dart';
-import 'package:flutter_myapp1_home/widgets/zaiko_item.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-
-import '../model/Anniversary.dart';
-import '../constants/colors.dart';
-import '../widgets/anniversary_item.dart';
-import '../repository/anniversaryRepository.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 class TestPage extends StatefulWidget {
@@ -91,7 +73,7 @@ class _TestPageState extends State<TestPage> {
 
                   // final List<Barcode> barcodes = capture.barcodes;
                   // final value = barcodes[0].rawValue;
-                  if (code != null) {
+                  if (code != '') {
                     // 検出した QR コードの値でデータを更新
                     setState(() {
                       scannedValue = code;

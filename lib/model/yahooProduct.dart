@@ -1,8 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '../repository/anniversaryRepository.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 

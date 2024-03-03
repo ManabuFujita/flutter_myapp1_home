@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../repository/anniversaryRepository.dart';
 
 class Anniversary {
   String userId;

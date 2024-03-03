@@ -1,5 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_myapp1_home/main.dart';
 import 'package:flutter_myapp1_home/screens/home.dart';
@@ -9,7 +8,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../model/Anniversary.dart';
 import '../constants/colors.dart';
-import '../widgets/anniversary_item.dart';
 import '../repository/anniversaryRepository.dart';
 
 class AnniversaryPage extends ConsumerStatefulWidget {
@@ -22,7 +20,6 @@ class AnniversaryPage extends ConsumerStatefulWidget {
 class _AnniversaryPageState extends ConsumerState<AnniversaryPage> {
   final aniversariesList = Anniversary.anniversaryList();
   // List<Anniversary> _foundAnniversary = [];
-  final _anniversaryController = TextEditingController();
 
   final userId = FirebaseAuth.instance.currentUser!.uid;
 
@@ -177,15 +174,15 @@ class _AnniversaryPageState extends ConsumerState<AnniversaryPage> {
   // }
 
   void _runFilter(String enteredKeyword) {
-    List<Anniversary> results = [];
-    if (enteredKeyword.isEmpty) {
-      results = aniversariesList;
-    } else {
-      results = aniversariesList
-          .where((item) =>
-              item.name!.toLowerCase().contains(enteredKeyword.toLowerCase()))
-          .toList();
-    }
+    // List<Anniversary> results = [];
+    // if (enteredKeyword.isEmpty) {
+    //   results = aniversariesList;
+    // } else {
+    //   results = aniversariesList
+    //       .where((item) =>
+    //           item.name!.toLowerCase().contains(enteredKeyword.toLowerCase()))
+    //       .toList();
+    // }
 
     setState(() {
       // _foundAnniversary = results;
@@ -228,8 +225,6 @@ class AnniversaryAddPage extends StatefulWidget {
 
 class _AnniversaryAddPageState extends State<AnniversaryAddPage> {
   final userId = FirebaseAuth.instance.currentUser!.uid;
-
-  String _inputText = '';
 
   final _textController = TextEditingController();
 

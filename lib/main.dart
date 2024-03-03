@@ -4,11 +4,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_myapp1_home/screens/anniversaryPage.dart';
 import 'package:flutter_myapp1_home/screens/home.dart';
-import 'package:flutter_myapp1_home/screens/testPage.dart';
 import 'package:flutter_myapp1_home/screens/todoPage.dart';
 import 'package:flutter_myapp1_home/screens/zaikoPage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'firebase_options.dart';
 import './screens/auth.dart';
 

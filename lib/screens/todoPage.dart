@@ -1,5 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_myapp1_home/main.dart';
 import 'package:flutter_myapp1_home/model/todo.dart';
@@ -21,7 +20,7 @@ class TodoPage extends ConsumerStatefulWidget {
 class _TodoPageState extends ConsumerState<TodoPage> {
   // final todoList = Todo.TodoList();
   // List<Todo> _foundTodo = [];
-  final _TodoController = TextEditingController();
+  // final _TodoController = TextEditingController();
 
   final userId = FirebaseAuth.instance.currentUser!.uid;
 
@@ -174,7 +173,7 @@ class _TodoPageState extends ConsumerState<TodoPage> {
   // }
 
   void _runFilter(String enteredKeyword) {
-    List<Todo> results = [];
+    // List<Todo> results = [];
     // if (enteredKeyword.isEmpty) {
     //   results = todoList;
     // } else {
@@ -226,7 +225,7 @@ class TodoAddPage extends StatefulWidget {
 class _TodoAddPageState extends State<TodoAddPage> {
   final userId = FirebaseAuth.instance.currentUser!.uid;
 
-  String _inputText = '';
+  // String _inputText = '';
 
   final _textController = TextEditingController();
   final _textIntervalController = TextEditingController();
@@ -234,7 +233,7 @@ class _TodoAddPageState extends State<TodoAddPage> {
   bool _isScheduled = false;
 
   DateTime _selectedDate = DateTime.now();
-  String _radioValue = '誕生日';
+  // String _radioValue = '誕生日';
 
   @override
   void initState() {
@@ -381,7 +380,7 @@ class _TodoAddPageState extends State<TodoAddPage> {
 
   void _onRadioChanged(String value) {
     setState(() {
-      _radioValue = value;
+      // _radioValue = value;
     });
   }
 

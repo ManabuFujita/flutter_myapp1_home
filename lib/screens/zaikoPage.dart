@@ -1,31 +1,20 @@
 import 'package:flutter/material.dart';
-// import 'dart:convert';
-
 import 'package:firebase_auth/firebase_auth.dart';
-// import 'package:firebase_core/firebase_core.dart';
-
-// import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_myapp1_home/main.dart';
 import 'package:flutter_myapp1_home/model/yahooProduct.dart';
 import 'package:flutter_myapp1_home/model/zaiko.dart';
 import 'package:flutter_myapp1_home/model/zaikoWantToBuy.dart';
-// import 'package:flutter_myapp1_home/model/zaikoSearch.dart';
 import 'package:flutter_myapp1_home/repository/zaikoRepository.dart';
 import 'package:flutter_myapp1_home/repository/zaikoSearchRepository.dart';
 import 'package:flutter_myapp1_home/repository/zaikoWantToBuyRepository.dart';
 import 'package:flutter_myapp1_home/screens/home.dart';
-// import 'package:flutter_myapp1_home/widgets/anniversary_item.dart';
 import 'package:flutter_myapp1_home/widgets/zaiko_item.dart';
 import 'package:flutter_myapp1_home/widgets/zaiko_want_item.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-// import '../model/Anniversary.dart';
 import '../constants/colors.dart';
-// import '../widgets/anniversary_item.dart';
-// import '../repository/anniversaryRepository.dart';
-// import 'package:http/http.dart' as http;
 
 class ZaikoPage extends ConsumerStatefulWidget {
   const ZaikoPage({Key? key}) : super(key: key);
@@ -352,7 +341,7 @@ class _ZaikoPageState extends ConsumerState<ZaikoPage> {
     // 検索バーのフィルター処理
     if (_textSearchWantController.text.isNotEmpty) {
       _zaikoLists = _zaikoLists
-          .where((item) => item.zaiko!.name
+          .where((item) => item.zaiko.name
               .toLowerCase()
               .contains(_textSearchWantController.text.toLowerCase()))
           .toList();
@@ -1189,7 +1178,7 @@ class _ZaikoAddPageState extends State<ZaikoAddPage> {
 
       // DB追加
       ZaikoRepository zaikoRepository = ZaikoRepository();
-      await zaikoRepository.insert(zaiko!);
+      await zaikoRepository.insert(zaiko);
     } else {
       // 更新
       productId = zaiko.productId;
@@ -1216,7 +1205,7 @@ class _ZaikoAddPageState extends State<ZaikoAddPage> {
 
       // DB更新
       ZaikoRepository zaikoRepository = ZaikoRepository();
-      await zaikoRepository.update(zaiko!);
+      await zaikoRepository.update(zaiko);
     }
 
     // クリア
@@ -1327,7 +1316,7 @@ class _CameraPageState extends State<CameraPage> {
 
                   // final List<Barcode> barcodes = capture.barcodes;
                   // final value = barcodes[0].rawValue;
-                  if (code != null) {
+                  if (code != '') {
                     // 検出した QR コードの値でデータを更新
                     handleGetCode(code);
                   }

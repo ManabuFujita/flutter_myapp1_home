@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_myapp1_home/model/zaiko.dart';
 import "package:intl/intl.dart";
-import 'package:intl/date_symbol_data_local.dart';
 
-import '../model/Anniversary.dart';
 import '../constants/colors.dart';
 
 class ZaikoWantItem extends StatefulWidget {
@@ -21,9 +18,8 @@ class ZaikoWantItem extends StatefulWidget {
 class _ZaikoWantItemState extends State<ZaikoWantItem> {
   late String _name;
 
-  var _numberController = TextEditingController();
+  // var _numberController = TextEditingController();
 
-  @override
   title() {
     return Text(
       _name,

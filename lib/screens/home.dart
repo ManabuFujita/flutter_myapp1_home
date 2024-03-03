@@ -1,10 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_myapp1_home/screens/todoPage.dart';
-
-import '../model/todo.dart';
 import '../constants/colors.dart';
-import '../widgets/todo_item.dart';
 
 class Home extends StatefulWidget {
   Home({Key? key}) : super(key: key);
@@ -15,8 +11,8 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   // final todosList = ToDo.todoList();
-  List<Todo> _foundToDo = [];
-  final _todoController = TextEditingController();
+  // List<Todo> _foundToDo = [];
+  // final _todoController = TextEditingController();
 
   final user = FirebaseAuth.instance.currentUser;
 
@@ -41,7 +37,7 @@ class _HomeState extends State<Home> {
   }
 
   void _runFilter(String enteredKeyword) {
-    List<Todo> results = [];
+    // List<Todo> results = [];
     if (enteredKeyword.isEmpty) {
       // results = todosList;
     } else {
@@ -53,7 +49,7 @@ class _HomeState extends State<Home> {
     }
 
     setState(() {
-      _foundToDo = results;
+      // _foundToDo = results;
     });
   }
 
