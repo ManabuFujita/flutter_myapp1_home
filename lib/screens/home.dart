@@ -90,7 +90,7 @@ class BuildAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: tdBGColor,
+      backgroundColor: myAppHeaderColor,
       elevation: 0,
       title: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         Text('app-name'),

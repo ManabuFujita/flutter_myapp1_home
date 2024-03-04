@@ -8,6 +8,7 @@ const Color tdGrey = Color(0xFF717171);
 
 const Color tdBGColor = Color(0xFFEEEFF5);
 
+const Color myAppHeaderColor = Color.fromARGB(255, 145, 145, 145);
 const Color myLabelColor = Color.fromARGB(255, 228, 228, 228);
 
 const Color myNowCalenderButton = Color.fromARGB(255, 250, 213, 183);

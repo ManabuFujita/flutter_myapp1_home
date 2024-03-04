@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_myapp1_home/main.dart';
@@ -13,6 +15,7 @@ import 'package:flutter_myapp1_home/widgets/zaiko_want_item.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:stream_transform/stream_transform.dart' show combineLatest;
 
 import '../constants/colors.dart';
 
@@ -67,6 +70,22 @@ class _ZaikoPageState extends ConsumerState<ZaikoPage> {
     super.initState();
   }
 
+  // Stream<Map<String, dynamic>> streamName() {
+  //   var a = FirebaseFirestore.instance
+  //       .collection('zaikos')
+  //       .where("userId", isEqualTo: userId)
+  //       .snapshots();
+  //   var b = FirebaseFirestore.instance
+  //       .collection('zaikos')
+  //       .where("userId", isEqualTo: userId)
+  //       .snapshots();
+  //   Stream<QuerySnapshot<Map<String, dynamic>>> c;
+
+  //   // return c().combineLatestAll([a, b]).map((data) {
+  //   //   return {"stream1": data[0], "stream2": data[1], "stream3": data[2]};
+  //   // });
+  // }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
@@ -83,7 +102,6 @@ class _ZaikoPageState extends ConsumerState<ZaikoPage> {
 
           if (snapshot.connectionState == ConnectionState.waiting) {
             print("Error snapshot waiting");
-            print("UserId: $userIdProvider");
             // return const Text("Loading");
             // return Container(
             //     alignment: Alignment.center,
@@ -92,11 +110,8 @@ class _ZaikoPageState extends ConsumerState<ZaikoPage> {
             //     ));
 
             if (snapshot.data == null) {
-              return Container(
-                  alignment: Alignment.center,
-                  child: const CircularProgressIndicator(
-                    color: Colors.green,
-                  ));
+              print("Error no data");
+              return Container();
             }
           }
 
@@ -132,9 +147,12 @@ class _ZaikoPageState extends ConsumerState<ZaikoPage> {
                     ),
                   )
                 : Container(),
+
+            WantToBuyList(),
+
             // zaikoWantToBuyListを表示
             for (ZaikoWantToBuy item in _zaikoWantToBuyList)
-              ZaikoWantItem(name: item.name),
+              ZaikoWantItem(name: item.name, zaikoWantToBuy: item),
 
             // zaikolistの数だけ、isWantToBuyがtrueのものを表示
             for (ZaikoList item in _zaikoLists)
@@ -233,6 +251,7 @@ class _ZaikoPageState extends ConsumerState<ZaikoPage> {
 
                         // 買い物中ボタン
                         Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
@@ -247,6 +266,9 @@ class _ZaikoPageState extends ConsumerState<ZaikoPage> {
                               },
                               child: Text(_isShopping ? '買い物中' : '買い物する'),
                             ),
+                            SizedBox(
+                              width: 16,
+                            )
                           ],
                         ),
 
@@ -547,6 +569,81 @@ class _ZaikoPageState extends ConsumerState<ZaikoPage> {
   //   "option4",
   //   "option5",
   // ];
+}
+
+class WantToBuyList extends StatefulWidget {
+  WantToBuyList({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  State<WantToBuyList> createState() => _WantToBuyList();
+}
+
+class _WantToBuyList extends State<WantToBuyList> {
+  String userId = FirebaseAuth.instance.currentUser!.uid;
+  ZaikoWantToBuyRepository zaikoWantToBuyRepository =
+      ZaikoWantToBuyRepository();
+
+  List<ZaikoWantToBuy> _zaikoWantToBuyList = [];
+
+  //   final userProvider = StateProvider((ref) {
+  //   return _zaikoLists;
+  // });
+
+  @override
+  void initState() {
+    Future(() async {
+      _zaikoWantToBuyList =
+          await zaikoWantToBuyRepository.getZaikoWantToBuysList(userId);
+    });
+
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot>(
+        // DBをリアルタイムで取得
+        stream: FirebaseFirestore.instance
+            .collection('zaikoWantToBuys')
+            .where("userId", isEqualTo: userId)
+            .snapshots(),
+        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (snapshot.hasError) {
+            print("Error snapshot.hasError");
+            return const Text('Something went wrong');
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            print("Stream Test snapshot waiting");
+          }
+
+          if (snapshot.data == null) {
+            print("Stream Test no data");
+            return Container();
+          }
+
+          // DBから取得したsnapshotデータを処理
+          _makeZaikoList(snapshot);
+
+          return Container(
+            child: Column(children: [
+              // Text('stream test'),
+              // zaikoWantToBuyListを表示
+              for (ZaikoWantToBuy item in _zaikoWantToBuyList)
+                ZaikoWantItem(name: item.name, zaikoWantToBuy: item),
+            ]),
+          );
+        });
+  }
+
+  _makeZaikoList(AsyncSnapshot<QuerySnapshot> snapshot) {
+    _zaikoWantToBuyList = snapshot.data!.docs.map((doc) {
+      // スナップショットから Anniversary オブジェクトのリストを作成
+      return ZaikoWantToBuy.fromJson(doc.data() as Map<String, dynamic>);
+    }).toList();
+  }
 }
 
 class ZaikoList {

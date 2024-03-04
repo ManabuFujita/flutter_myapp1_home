@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_myapp1_home/model/zaikoWantToBuy.dart';
+import 'package:flutter_myapp1_home/repository/zaikoWantToBuyRepository.dart';
 import "package:intl/intl.dart";
 
 import '../constants/colors.dart';
 
 class ZaikoWantItem extends StatefulWidget {
-  final name;
+  final String name;
+  final ZaikoWantToBuy zaikoWantToBuy;
 
   ZaikoWantItem({
     Key? key,
     required this.name,
+    required this.zaikoWantToBuy,
   }) : super(key: key);
 
   @override
@@ -16,26 +20,31 @@ class ZaikoWantItem extends StatefulWidget {
 }
 
 class _ZaikoWantItemState extends State<ZaikoWantItem> {
-  late String _name;
+  // late String _name = widget.name;
+  late ZaikoWantToBuy _zaikoWantToBuy = widget.zaikoWantToBuy;
+
+  ZaikoWantToBuyRepository zaikoWantToBuyRepository =
+      ZaikoWantToBuyRepository();
 
   // var _numberController = TextEditingController();
 
+  @override
+  void initState() {
+    // _numberController.text = widget.buyNumber.toString();
+    // _name = widget.name;
+    _zaikoWantToBuy = widget.zaikoWantToBuy;
+
+    super.initState();
+  }
+
   title() {
     return Text(
-      _name,
+      _zaikoWantToBuy.name,
       style: TextStyle(
         fontSize: 16,
         color: tdBlack,
       ),
     );
-  }
-
-  @override
-  void initState() {
-    // _numberController.text = widget.buyNumber.toString();
-    _name = widget.name;
-
-    super.initState();
   }
 
   @override
@@ -70,9 +79,7 @@ class _ZaikoWantItemState extends State<ZaikoWantItem> {
                   side: BorderSide(color: tdRed),
                 ),
                 onPressed: () {
-                  // _onWantItem(
-                  //   _zaiko,
-                  // );
+                  onDeleteItem();
                 },
                 child: Text('削除')),
 
@@ -89,6 +96,12 @@ class _ZaikoWantItemState extends State<ZaikoWantItem> {
         ),
       ),
     );
+  }
+
+  // データの削除
+  void onDeleteItem() {
+    zaikoWantToBuyRepository.delete(
+        _zaikoWantToBuy.userId, _zaikoWantToBuy.name);
   }
 
   getDateFormatted(DateTime date) {

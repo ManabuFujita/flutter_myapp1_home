@@ -16,34 +16,34 @@ class ZaikoSearchRepository {
   // }
 
   // ユーザーの検索履歴を、指定個数分、searchCountの多い順に取得する
-  Future<List<ZaikoSearch>> _getZaikoSearchesList(String userId,
+  Future<Map<String, ZaikoSearch>> _getZaikoSearchesMap(String userId,
       {int limitCount = 999}) async {
-    List<ZaikoSearch> zaikoSearchList = [];
+    Map<String, ZaikoSearch> zaikoSearchMap = {};
 
     await zaikoSearchManager
-        // .where('userId', isEqualTo: userId)
+        .where('userId', isEqualTo: userId)
         // .orderBy('searchCount', descending: true)
         // .limit(limitCount)
         .get()
         .then(
           (QuerySnapshot snapshot) => {
             snapshot.docs.forEach((f) {
-              zaikoSearchList
-                  .add(ZaikoSearch.fromJson(f.data() as Map<String, Object?>));
+              zaikoSearchMap[f.reference.id] =
+                  ZaikoSearch.fromJson(f.data() as Map<String, Object?>);
             }),
           },
         );
 
-    return zaikoSearchList;
+    return zaikoSearchMap;
   }
 
   // zaikoSearchListから検索ワードのリストを作成
   Future<List<String>> getSearchWordsList(String userId, int limitCount) async {
-    List<ZaikoSearch> zaikoSearchList =
-        await _getZaikoSearchesList(userId, limitCount: limitCount);
+    Map<String, ZaikoSearch> zaikoSearchMap =
+        await _getZaikoSearchesMap(userId, limitCount: limitCount);
 
     List<String> searchWordsList = [];
-    zaikoSearchList.forEach((zaikoSearch) {
+    zaikoSearchMap.forEach((docId, zaikoSearch) {
       searchWordsList.add(zaikoSearch.searchWord);
     });
 
@@ -52,13 +52,15 @@ class ZaikoSearchRepository {
 
   // ユーザーidから、searhWordを検索して、見つかれば検索回数を更新する。見つからなければ新規登録する
   Future<void> updateSearchCount(String userId, String searchWord) async {
-    List<ZaikoSearch> zaikoSearchList = await _getZaikoSearchesList(userId);
+    Map<String, ZaikoSearch> zaikoSearchMap =
+        await _getZaikoSearchesMap(userId);
     bool isExist = false;
 
-    zaikoSearchList.forEach((zaikoSearch) {
+    zaikoSearchMap.forEach((docId, zaikoSearch) {
       if (zaikoSearch.searchWord == searchWord) {
         isExist = true;
-        zaikoSearchManager.doc(zaikoSearch.userId).update({
+        // ユーザーidとsearchWordが一致するデータを更新
+        zaikoSearchManager.doc(docId).update({
           'searchCount': zaikoSearch.searchCount + 1,
           'updatedAt': Timestamp.now(),
         });
